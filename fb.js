@@ -5,6 +5,7 @@
         var debugReq = require('debug')('fb:req'),
             debugSig = require('debug')('fb:sig'),
             request  = require('request'),
+            fs       = require('fs'),
             URL      = require('url'),
             QS       = require('querystring'),
             crypto   = require('crypto'),
@@ -239,6 +240,7 @@
                 parsedUri,
                 query,
                 body,
+                formData,
                 key,
                 value,
                 requestOptions,
@@ -287,7 +289,17 @@
                     }
                 }
 
-                body = stringifyParams(params);
+                if(params.file) {
+
+                    formData = buildFormData(params);
+
+                }//if
+                else {
+
+                    body = stringifyParams(params);
+
+                }//else
+
             } else {
                 for(key in params) {
                     parsedQuery[key] = params[key];
@@ -301,9 +313,14 @@
             requestOptions = {
                 method: method,
                 uri: uri,
-                body: body,
                 pool: pool
             };
+            if(formData) {
+                requestOptions['formData'] = formData;
+            }
+            if(body) {
+                requestOptions['body'] = body;
+            }
             if(options('proxy')) {
                 requestOptions['proxy'] = options('proxy');
             }
@@ -365,13 +382,56 @@
             return result;
         };
 
-        stringifyParams = function(params) {
+        buildFormData = function(params) {
             var data = {},
                 key,
+                i,
                 value;
 
             for(key in params) {
                 value = params[key];
+                if(key == "file") {
+
+                    if(value && typeof value == "object") {
+
+                        for(i in value) {
+
+                            data[key+'_'+i] = fs.createReadStream(value[i]);
+
+                        }//for
+
+                    }//if
+                    else {
+
+                        data[key] = fs.createReadStream(value);
+
+                    }//else
+
+                }//if
+                else {
+
+                    if(value && typeof value !== 'string') {
+                        value = JSON.stringify(value);
+                    }
+                    if(value !== undefined) {
+                        data[key] = value;
+                    }
+
+                }//else
+            }
+
+            return data;
+        };
+
+        stringifyParams = function(params) {
+            var data = {},
+                key,
+                i,
+                value;
+
+            for(key in params) {
+                value = params[key];
+                
                 if(value && typeof value !== 'string') {
                     value = JSON.stringify(value);
                 }

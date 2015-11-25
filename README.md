@@ -76,6 +76,38 @@ FB.api('me/feed', 'post', { message: body }, function (res) {
 });
 ```
 
+### Post with photo
+
+```js
+var FB = require('fb');
+FB.setAccessToken('access_token');
+
+var body = 'My first post using facebook-node-sdk';
+FB.api('me/photos', 'post', { message: body, file: '/path/to/image.jpg' }, function (res) {
+  if(!res || res.error) {
+    console.log(!res ? 'error occurred' : res.error);
+    return;
+  }
+  console.log('Post Id: ' + res.id);
+});
+```
+
+### Post with video
+
+```js
+var FB = require('fb');
+FB.setAccessToken('access_token');
+
+var body = 'My first post using facebook-node-sdk';
+FB.api('me/videos', 'post', { message: body, file: '/path/to/video.mp4' }, function (res) {
+  if(!res || res.error) {
+    console.log(!res ? 'error occurred' : res.error);
+    return;
+  }
+  console.log('Post Id: ' + res.id);
+});
+``
+
 ### Delete
 
 ```js
